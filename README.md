@@ -1,6 +1,6 @@
 # MySMSMasking
 
-Package golang untuk berkomunikasi dengan API MySMSMasking
+Package golang untuk berkomunikasi dengan API [MySMSMasking](https://mysmsmasking.com/)
 
 ## Cara Pakai
 
