@@ -47,11 +47,11 @@ func main() {
         panic(err)
     }
     switch status {
-    case msm.DELIVERED:
+    case mysmsmasking.DELIVERED:
         fmt.Printf("Status ID %s: SAMPAI", awb.Id)
-    case msm.SENT:
+    case mysmsmasking.SENT:
         fmt.Printf("Status ID %s: OTW", awb.Id)
-    case msm.INVALID_ID:
+    case mysmsmasking.INVALID_ID:
         fmt.Printf("Status ID %s: ID TIDAK KETEMU", awb.Id)
     default:
         fmt.Printf("Status ID %s: GAGAL", awb.Id)
