@@ -34,7 +34,7 @@ func main() {
     fmt.Printf("Kedaluarsa\t: %s\n\n", acc.Expiry.Format("2006-01-02 15:04:05 MST"))
 
     // Kirim SMS
-    awb, err := client.Send("081xxxxxxxxxx", "Testing kiriman SMS dengan package golang MySMSMasking")
+    awb, err := client.Send("081xxxxxxxxxx", "Testing kirim SMS dengan package github.com/xpartacvs/go-mysmsmasking")
     if err != nil {
         panic(err)
     }
