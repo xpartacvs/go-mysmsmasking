@@ -42,7 +42,7 @@ func main() {
     fmt.Printf("Waktu Kirim\t: %s\n\n", awb.Timestamp.Format("2006-01-02 15:04:05 MST"))
 
     // Cek status kiriman SMS
-    status, err := client.GetReport(awb.Id)
+    status, err := client.GetStatus(awb.Id)
     if err != nil {
         panic(err)
     }

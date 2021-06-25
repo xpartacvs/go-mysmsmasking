@@ -19,7 +19,7 @@ type client struct {
 
 type Client interface {
 	GetAccountInfo() (AccountInfo, error)
-	GetReport(airwaybillId string) (Status, error)
+	GetStatus(airwaybillId string) (Status, error)
 	Send(msisdn, message string) (Airwaybill, error)
 }
 
@@ -56,7 +56,7 @@ func (c client) Send(msisdn, message string) (Airwaybill, error) {
 	}, nil
 }
 
-func (c client) GetReport(airwaybillId string) (Status, error) {
+func (c client) GetStatus(airwaybillId string) (Status, error) {
 	target := fmt.Sprintf("%s/masking/report.php?rpt=%s", c.url, url.QueryEscape(airwaybillId))
 	resp, err := http.Get(target)
 	if err != nil {
