@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type Report int8
+type Status int8
 
 type AccountInfo struct {
 	Balance uint32
@@ -18,7 +18,7 @@ type Airwaybill struct {
 }
 
 const (
-	FAILED Report = iota
+	FAILED Status = iota
 	SENT
 	DELIVERED
 	INVALID_ID
