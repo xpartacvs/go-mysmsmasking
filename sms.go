@@ -1,16 +1,16 @@
-package client
+package sms
 
 import (
 	"errors"
 	"io"
+	"net/http"
 	"net/url"
 	"regexp"
 	"strconv"
 	"time"
-
-	"github.com/xpartacvs/go-mysmsmasking/core"
 )
 
+type Method string
 type Status int8
 
 type AccountInfo struct {
@@ -24,10 +24,14 @@ type Airwaybill struct {
 }
 
 type Client struct {
-	core core.Core
+	user string
+	pass string
 }
 
 const (
+	methodGet  Method = http.MethodGet
+	methodPost Method = http.MethodPost
+
 	FAILED Status = iota
 	SENT
 	DELIVERED
@@ -41,11 +45,27 @@ var (
 	rgxCSVSeparator *regexp.Regexp = regexp.MustCompile(`,\s*`)
 	rgxMsisdn       *regexp.Regexp = regexp.MustCompile(`^(0|62)8[1-9]\d+$`)
 
-	ErrInvalidMSISDN error = errors.New("msisdn must begin with 628 or 08")
+	ErrInvalidMSISDN    error = errors.New("msisdn must begin with 628 or 08")
+	ErrMethodNotAllowed error = errors.New("method not allowed")
 )
 
+func (c Client) callApi(method Method, namespace, apiName string, data url.Values) (*http.Response, error) {
+	urlPath := "http://sms.mysmsmasking.com/" + namespace + "/" + apiName + ".php"
+	data.Add("username", c.user)
+	data.Add("password", c.pass)
+
+	switch method {
+	case methodGet:
+		return http.Get(urlPath + "?" + data.Encode())
+	case methodPost:
+		return http.PostForm(urlPath, data)
+	}
+
+	return nil, ErrMethodNotAllowed
+}
+
 func (c Client) GetAccountInfo() (*AccountInfo, error) {
-	resp, err := c.core.CallApi(core.MethodGet, "masking", "balance", url.Values{})
+	resp, err := c.callApi(methodGet, "masking", "balance", url.Values{})
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +108,7 @@ func (c Client) Send(msisdn, message string) (*Airwaybill, error) {
 	data.Add("hp", msisdn)
 	data.Add("message", message)
 
-	resp, err := c.core.CallApi(core.MethodPost, "masking", "send", data)
+	resp, err := c.callApi(methodPost, "masking", "send", data)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +131,7 @@ func (c Client) GetStatus(airwaybillId string) (Status, error) {
 	data := url.Values{}
 	data.Add("rpt", airwaybillId)
 
-	resp, err := c.core.CallApi(core.MethodGet, "masking", "report", data)
+	resp, err := c.callApi(methodGet, "masking", "report", data)
 	if err != nil {
 		return FAILED, err
 	}
@@ -165,8 +185,9 @@ func (c Client) GetStatus(airwaybillId string) (Status, error) {
 	}
 }
 
-func New(username, password string) Client {
+func NewClient(username, password string) Client {
 	return Client{
-		core: core.New(username, password),
+		user: username,
+		pass: password,
 	}
 }
