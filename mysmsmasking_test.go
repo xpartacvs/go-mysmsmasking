@@ -1,4 +1,4 @@
-package sms
+package mysmsmasking
 
 import (
 	"net/url"
