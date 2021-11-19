@@ -1,5 +1,7 @@
 # MySMSMasking
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/xpartacvs/go-mysmsmasking.svg)](https://pkg.go.dev/github.com/xpartacvs/go-mysmsmasking)
+
 Package golang untuk berkomunikasi dengan API [MySMSMasking](https://mysmsmasking.com/)
 
 ## Cara Pakai
