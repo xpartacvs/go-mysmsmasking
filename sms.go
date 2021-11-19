@@ -32,6 +32,8 @@ type Client struct {
 }
 
 const (
+	defaultBaseUrl string = "http://sms.mysmsmasking.com"
+
 	methodGet  allowedMethod = http.MethodGet
 	methodPost allowedMethod = http.MethodPost
 
@@ -52,21 +54,31 @@ var (
 	ErrInvalidMSISDN    error = errors.New("msisdn must begin with 628 or 08")
 	ErrMethodNotAllowed error = errors.New("method not allowed")
 
-	runtimeBaseUrl *url.URL
+	runtimeBaseUrl string
 	once           sync.Once
 )
 
 func runtimeBaseURL() string {
 	once.Do(func() {
-		runtimeBaseUrl, err := url.Parse(os.Getenv("MYSMSMASKING_BASEURL"))
+		r, err := url.ParseRequestURI(os.Getenv("MYSMSMASKING_BASEURL"))
 		if err != nil {
-			runtimeBaseUrl, _ = url.Parse("http://sms.mysmsmasking.com")
+			runtimeBaseUrl = defaultBaseUrl
+			return
 		}
-		runtimeBaseUrl.RawQuery = ""
-		runtimeBaseUrl.RawFragment = ""
-		runtimeBaseUrl.Fragment = ""
+
+		r.RawQuery = ""
+		r.RawFragment = ""
+		r.Fragment = ""
+
+		if len(r.String()) <= 0 {
+			runtimeBaseUrl = defaultBaseUrl
+			return
+		}
+
+		runtimeBaseUrl = strings.TrimRight(r.String(), "/ ")
 	})
-	return strings.TrimRight(runtimeBaseUrl.String(), "/ ")
+
+	return runtimeBaseUrl
 }
 
 func (c Client) callApi(method allowedMethod, namespace, apiName string, data url.Values) (*http.Response, error) {
