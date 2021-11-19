@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-type Method string
+type allowedMethod string
 type Status int8
 
 type AccountInfo struct {
@@ -32,8 +32,8 @@ type Client struct {
 }
 
 const (
-	methodGet  Method = http.MethodGet
-	methodPost Method = http.MethodPost
+	methodGet  allowedMethod = http.MethodGet
+	methodPost allowedMethod = http.MethodPost
 
 	FAILED Status = iota
 	SENT
@@ -69,7 +69,7 @@ func runtimeBaseURL() string {
 	return strings.TrimRight(runtimeBaseUrl.String(), "/ ")
 }
 
-func (c Client) callApi(method Method, namespace, apiName string, data url.Values) (*http.Response, error) {
+func (c Client) callApi(method allowedMethod, namespace, apiName string, data url.Values) (*http.Response, error) {
 	urlPath := runtimeBaseURL() + "/" + namespace + "/" + apiName + ".php"
 
 	data.Add("username", c.user)
