@@ -21,7 +21,7 @@ package main
 
 import (
     "fmt"
-    "github.com/xpartacvs/go-mysmsmasking"
+    "github.com/xpartacvs/go-mysmsmasking/sms"
 )
 
 func main() {
