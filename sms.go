@@ -5,8 +5,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -44,13 +46,20 @@ const (
 var (
 	rgxCSVSeparator *regexp.Regexp = regexp.MustCompile(`,\s*`)
 	rgxMsisdn       *regexp.Regexp = regexp.MustCompile(`^(0|62)8[1-9]\d+$`)
+	rgxCVS          *regexp.Regexp = regexp.MustCompile(`^\d+.*`)
 
 	ErrInvalidMSISDN    error = errors.New("msisdn must begin with 628 or 08")
 	ErrMethodNotAllowed error = errors.New("method not allowed")
 )
 
 func (c Client) callApi(method Method, namespace, apiName string, data url.Values) (*http.Response, error) {
-	urlPath := "http://sms.mysmsmasking.com/" + namespace + "/" + apiName + ".php"
+	baseUrl := "http://sms.mysmsmasking.com"
+
+	if envBaseUrl := strings.Trim(os.Getenv("MYSMSMASKING_BASEURL"), "/ "); len(envBaseUrl) > 0 {
+		baseUrl = envBaseUrl
+	}
+
+	urlPath := baseUrl + "/" + namespace + "/" + apiName + ".php"
 	data.Add("username", c.user)
 	data.Add("password", c.pass)
 
@@ -144,7 +153,6 @@ func (c Client) GetStatus(airwaybillId string) (Status, error) {
 
 	strBody := string(bytesResp)
 
-	rgxCVS := regexp.MustCompile(`^\d+.*`)
 	if !rgxCVS.MatchString(strBody) {
 		return INVALID_ID, nil
 	}
