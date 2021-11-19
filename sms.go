@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -50,16 +51,27 @@ var (
 
 	ErrInvalidMSISDN    error = errors.New("msisdn must begin with 628 or 08")
 	ErrMethodNotAllowed error = errors.New("method not allowed")
+
+	runtimeBaseUrl *url.URL
+	once           sync.Once
 )
 
+func runtimeBaseURL() string {
+	once.Do(func() {
+		runtimeBaseUrl, err := url.Parse(os.Getenv("MYSMSMASKING_BASEURL"))
+		if err != nil {
+			runtimeBaseUrl, _ = url.Parse("http://sms.mysmsmasking.com")
+		}
+		runtimeBaseUrl.RawQuery = ""
+		runtimeBaseUrl.RawFragment = ""
+		runtimeBaseUrl.Fragment = ""
+	})
+	return strings.TrimRight(runtimeBaseUrl.String(), "/ ")
+}
+
 func (c Client) callApi(method Method, namespace, apiName string, data url.Values) (*http.Response, error) {
-	baseUrl := "http://sms.mysmsmasking.com"
+	urlPath := runtimeBaseURL() + "/" + namespace + "/" + apiName + ".php"
 
-	if envBaseUrl := strings.Trim(os.Getenv("MYSMSMASKING_BASEURL"), "/ "); len(envBaseUrl) > 0 {
-		baseUrl = envBaseUrl
-	}
-
-	urlPath := baseUrl + "/" + namespace + "/" + apiName + ".php"
 	data.Add("username", c.user)
 	data.Add("password", c.pass)
 
