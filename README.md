@@ -10,20 +10,22 @@ Download paket:
 go get github.com/xpartacvs/go-mysmsmasking
 ```
 
-Langsung koding:
+>Sementara ini cuma ada satu package didalamnya yaitu package bernama `sms`.
+
+Kemudian kita langsung koding:
 
 ```go
 package main
 
 import (
-    "github.com/xpartacvs/go-mysmsmasking"
     "fmt"
+    "github.com/xpartacvs/go-mysmsmasking"
 )
 
 func main() {
 
     // Instansiasi client
-    client := mysmsmasking.New("<url-server-api>", "<username>", "<password>")
+    client := sms.NewClient("<username>", "<password>")
 
     // Cek saldo dan kedaluarsa
     acc, err := client.GetAccountInfo()
@@ -47,11 +49,11 @@ func main() {
         panic(err)
     }
     switch status {
-    case mysmsmasking.DELIVERED:
+    case sms.DELIVERED:
         fmt.Printf("Status ID %s: SAMPAI", awb.Id)
-    case mysmsmasking.SENT:
+    case sms.SENT:
         fmt.Printf("Status ID %s: OTW", awb.Id)
-    case mysmsmasking.INVALID_ID:
+    case sms.INVALID_ID:
         fmt.Printf("Status ID %s: ID TIDAK KETEMU", awb.Id)
     default:
         fmt.Printf("Status ID %s: GAGAL", awb.Id)

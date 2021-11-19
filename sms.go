@@ -1,4 +1,4 @@
-package mysmsmasking
+package sms
 
 import (
 	"errors"
