@@ -25,8 +25,8 @@ func Test_callApi_With_Wrong_Method_Return_Error(t *testing.T) {
 
 func Test_callApi_With_Wrong_Method_Return_Error_Not_Allowed_Method(t *testing.T) {
 	c := NewClient("", "")
-	_, e := c.callApi("PUT", "", "", url.Values{})
-	require.ErrorIs(t, e, ErrMethodNotAllowed)
+	_, e := c.callApi("HOHO", "", "", url.Values{})
+	require.ErrorIs(t, e, errMethodNotAllowed)
 }
 
 func Test_callApi_With_GET_Not_Error(t *testing.T) {

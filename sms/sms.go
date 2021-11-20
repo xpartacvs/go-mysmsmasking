@@ -14,18 +14,27 @@ import (
 )
 
 type allowedMethod string
+
+// Status menunjukan status dari suatu kiriman SMS.
 type Status int8
 
+// AccountInfo berisi info terkair akun mysmsmasking
+// yang terdiri dari info saldo dan tanggal kedaluarsa.
 type AccountInfo struct {
 	Balance int64
 	Expiry  time.Time
 }
 
+// Airwaybill beisi info terkait kiriman SMS yang
+// terdisi dari Id kiriman dan sempel waktu kapan SMS
+// disubmit ke gateway MySMSMasking.
 type Airwaybill struct {
 	Id        string
 	Timestamp time.Time
 }
 
+// Client adalah struct utama yang akan berinteraksi
+// dengan API MySMSMasking.
 type Client struct {
 	user string
 	pass string
@@ -37,22 +46,24 @@ const (
 	methodGet  allowedMethod = http.MethodGet
 	methodPost allowedMethod = http.MethodPost
 
-	FAILED Status = iota
-	SENT
-	DELIVERED
-	INVALID_ID
-	INVALID_MSISDN
-	BALANCE_INSUFFICIENT
-	BALANCE_EXPIRED
+	FAILED               Status = iota // Pengiriman SMS gagal
+	SENT                               // SMS sudah dikirimkan dari server MySMSMasking ke MSISDN tujuan
+	DELIVERED                          // SMS sudah diterima olah MSISDN tujuan
+	INVALID_ID                         // Airwaybill tidak valid
+	INVALID_MSISDN                     // Nomor MSISDN tidak valid
+	BALANCE_INSUFFICIENT               // Saldo habis/kurang
+	BALANCE_EXPIRED                    // Akun MySMSMasking kedaluarsa
 )
 
 var (
+	// Error karena nomor MSISDN tidak valid
+	ErrInvalidMSISDN error = errors.New("msisdn must begin with 628 or 08")
+
 	rgxCSVSeparator *regexp.Regexp = regexp.MustCompile(`,\s*`)
 	rgxMsisdn       *regexp.Regexp = regexp.MustCompile(`^(0|62)8[1-9]\d+$`)
 	rgxCVS          *regexp.Regexp = regexp.MustCompile(`^\d+.*`)
 
-	ErrInvalidMSISDN    error = errors.New("msisdn must begin with 628 or 08")
-	ErrMethodNotAllowed error = errors.New("method not allowed")
+	errMethodNotAllowed error = errors.New("method not allowed")
 
 	runtimeBaseUrl string
 	once           sync.Once
@@ -94,9 +105,11 @@ func (c Client) callApi(method allowedMethod, namespace, apiName string, data ur
 		return http.PostForm(urlPath, data)
 	}
 
-	return nil, ErrMethodNotAllowed
+	return nil, errMethodNotAllowed
 }
 
+// Jika tidak terjadi error, method GetAccountInfo akan mengembalikan *AccountInfo.
+// Sebaliknya, error akan berisi bukan nil.
 func (c Client) GetAccountInfo() (*AccountInfo, error) {
 	resp, err := c.callApi(methodGet, "masking", "balance", url.Values{})
 	if err != nil {
@@ -132,6 +145,8 @@ func (c Client) GetAccountInfo() (*AccountInfo, error) {
 	}, nil
 }
 
+// Jika tidak terjadi error, method Send akan mengembalikan *Airwaybill.
+// Sebaliknya, error akan berisi bukan nil.
 func (c Client) Send(msisdn, message string) (*Airwaybill, error) {
 	if !rgxMsisdn.MatchString(msisdn) {
 		return nil, ErrInvalidMSISDN
@@ -160,6 +175,9 @@ func (c Client) Send(msisdn, message string) (*Airwaybill, error) {
 	}, nil
 }
 
+// Jika tidak terjadi error, method GetStatus akan mengembalikan
+// salah satu konstanta dengan type Status. Sebaliknya, error
+// akan berisi bukan nil.
 func (c Client) GetStatus(airwaybillId string) (Status, error) {
 	data := url.Values{}
 	data.Add("rpt", airwaybillId)
@@ -217,6 +235,8 @@ func (c Client) GetStatus(airwaybillId string) (Status, error) {
 	}
 }
 
+// NewClient adalah func untuk menginstansiasi type Client
+// dengan memanfaatkan arguman username dan password.
 func NewClient(username, password string) Client {
 	return Client{
 		user: username,
